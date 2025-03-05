@@ -7,7 +7,7 @@ import dash_daq as daq
 import sys
 import os
 
-# Dynamischen Pfad zum Import des Moduls hinzufügen
+# Dynamische Pfade zum Import von Modulen
 sys.path.append(os.path.abspath("Conversion"))
 
 # Jetzt kann es importiert werden
@@ -34,54 +34,66 @@ START_TIME = datetime.datetime.now()
 # Speichert den letzten Zustand, um unnötige Schreibvorgänge zu vermeiden
 last_saved_state = {"north_south": None, "east_west": None, "remaining_time": None}
 
-# **Layout für die Ampelsteuerung**
-layout = html.Div([
-    html.H1("RSU Kreuzungssteuerung"),
-    dcc.Interval(
-        id="interval-component",
-        interval=1000,  # Aktualisierung jede Sekunde
-        n_intervals=0
-    ),
-    html.Div([
-        html.Div([daq.Indicator(id="north-red", value=True, color="red"),
-                  daq.Indicator(id="north-yellow", value=True, color="gray"),
-                  daq.Indicator(id="north-green", value=True, color="gray")],
-                 style={"display": "flex", "flexDirection": "column", "alignItems": "center"}),
+layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyContent": "space-between"}, children=[
 
-    ], style={"display": "flex", "justifyContent": "flex-start", "marginBottom": "10px", "marginLeft": "125px"}),
+    # **LINKER BEREICH: Ampelsteuerung**
+    html.Div(style={"flex": "1", "padding": "20px", "backgroundColor": "#f9f9f9"}, children=[
+        html.H1("RSU Kreuzungssteuerung"),
+        dcc.Interval(
+            id="interval-component",
+            interval=1000,  # Aktualisierung jede Sekunde
+            n_intervals=0
+        ),
+        html.Div([
+            html.Div([daq.Indicator(id="north-red", value=True, color="red"),
+                      daq.Indicator(id="north-yellow", value=True, color="gray"),
+                      daq.Indicator(id="north-green", value=True, color="gray")],
+                     style={"display": "flex", "flexDirection": "column", "alignItems": "center"}),
 
-    html.Div([
-        html.Div([daq.Indicator(id="west-red", value=True, color="red"),
-                  daq.Indicator(id="west-yellow", value=True, color="gray"),
-                  daq.Indicator(id="west-green", value=True, color="gray")],
-                 style={"display": "flex", "flexDirection": "row", "alignItems": "center", "marginRight": "10px"}),
+        ], style={"display": "flex", "justifyContent": "flex-start", "marginBottom": "10px", "marginLeft": "125px"}),
 
-        html.Div(style={"width": "150px", "height": "150px", "backgroundColor": "#ccc", "border": "3px solid black"}),
+        html.Div([
+            html.Div([daq.Indicator(id="west-red", value=True, color="red"),
+                      daq.Indicator(id="west-yellow", value=True, color="gray"),
+                      daq.Indicator(id="west-green", value=True, color="gray")],
+                     style={"display": "flex", "flexDirection": "row", "alignItems": "center", "marginRight": "10px"}),
 
-        html.Div([daq.Indicator(id="east-red", value=True, color="red"),
-                  daq.Indicator(id="east-yellow", value=True, color="gray"),
-                  daq.Indicator(id="east-green", value=True, color="gray")],
-                 style={"display": "flex", "flexDirection": "row", "alignItems": "center", "marginLeft": "10px"})
-    ], style={"display": "flex", "justifyContent": "flex-start", "alignItems": "center"}),
+            html.Div(style={"width": "150px", "height": "150px", "backgroundColor": "#ccc", "border": "3px solid black"}),
 
-    html.Div([
-        html.Div([daq.Indicator(id="south-red", value=True, color="red"),
-                  daq.Indicator(id="south-yellow", value=True, color="gray"),
-                  daq.Indicator(id="south-green", value=True, color="gray")],
-                 style={"display": "flex", "flexDirection": "column", "alignItems": "center"}),
-    ], style={"display": "flex", "justifyContent": "flex-start", "marginTop": "10px", "marginLeft": "125px"}),
+            html.Div([daq.Indicator(id="east-red", value=True, color="red"),
+                      daq.Indicator(id="east-yellow", value=True, color="gray"),
+                      daq.Indicator(id="east-green", value=True, color="gray")],
+                     style={"display": "flex", "flexDirection": "row", "alignItems": "center", "marginLeft": "10px"})
+        ], style={"display": "flex", "justifyContent": "flex-start", "alignItems": "center"}),
 
-    html.H1("RSU Kreuzungssteuerung - Manuelle Steuerung"),
-    html.Button("Nächste Sekunde", id="next-second-button", n_clicks=0),
+        html.Div([
+            html.Div([daq.Indicator(id="south-red", value=True, color="red"),
+                      daq.Indicator(id="south-yellow", value=True, color="gray"),
+                      daq.Indicator(id="south-green", value=True, color="gray")],
+                     style={"display": "flex", "flexDirection": "column", "alignItems": "center"}),
 
-    html.H2("Aktueller Status"),
-    html.Div(id="current-status"),
-    html.H2("Verbleibende Zeit"),
-    html.Div(id="remaining-time"),
+        ], style={"display": "flex", "justifyContent": "flex-start", "marginTop": "10px", "marginLeft": "125px"}),
 
-    html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_traffic_light", n_clicks=0),
-    html.Div(id="status-message"),
+        html.H1("RSU Kreuzungssteuerung - Manuelle Steuerung"),
+        html.Button("Nächste Sekunde", id="next-second-button", n_clicks=0),
+
+        html.H2("Aktueller Status"),
+        html.Div(id="current-status"),
+        html.H2("Verbleibende Zeit"),
+        html.Div(id="remaining-time"),
+
+        html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_traffic_light", n_clicks=0),
+        html.Div(id="status-message"),
+    ]),
+
+    # **RECHTER BEREICH: JSON**
+    html.Div(style={"flex": "1", "padding": "20px", "borderLeft": "2px solid #ccc", "backgroundColor": "#f9f9f9"}, children=[
+        html.H2("Aktualisierte JSON-Daten"),
+        html.Pre(id="json-traffic-light-display", style={"border": "1px solid black", "padding": "10px", "whiteSpace": "pre-wrap",
+                                           "backgroundColor": "white", "height": "100px", "overflowY": "scroll"})
+    ])
 ])
+
 
 def get_current_phase(n_clicks):
     """Berechnet die aktuelle Ampelphase basierend auf der Anzahl der Klicks."""
@@ -96,9 +108,9 @@ def get_current_phase(n_clicks):
     return "all_red", 0
 
 def save_traffic_data(ns_phase, ew_phase, remaining_time):
-    """Speichert die aktuellen Ampelphasen in die JSON-Datei und konvertiert sie zu DSRC."""
+    """Speichert die aktuellen Ampelphasen in JSON und gibt DSRC-Nachricht zurück."""
     data = {"north_south": ns_phase, "east_west": ew_phase, "remaining_time": remaining_time}
-    
+
     # Speichert die Daten als JSON
     with open(DATA_FILE, "w") as file:
         json.dump(data, file, indent=4)
@@ -107,10 +119,10 @@ def save_traffic_data(ns_phase, ew_phase, remaining_time):
 
     # Automatische DSRC-Umwandlung
     json_data = load_traffic_data()  # Lade das gespeicherte JSON
-    dsrc_message = convert_to_dsrc(json_data)  # Wandle es in DSRC um
+    encoded_message = convert_to_dsrc(json_data)  # Wandle es in DSRC um
 
-    if dsrc_message:
-        save_dsrc_message(dsrc_message, "dsrc_traffic_light_message.bin")  # Speichern als Binärdatei
+    if encoded_message:
+        save_dsrc_message(encoded_message, "dsrc_traffic_light_message.bin")  # Speichern als Binärdatei
         print("✅ DSRC-Nachricht erfolgreich generiert & gespeichert!")
 
 # **Callback-Funktion wird über eine separate Funktion registriert**
@@ -120,7 +132,8 @@ def register_callbacks(app):
          Output("south-red", "color"), Output("south-yellow", "color"), Output("south-green", "color"),
          Output("east-red", "color"), Output("east-yellow", "color"), Output("east-green", "color"),
          Output("west-red", "color"), Output("west-yellow", "color"), Output("west-green", "color"),
-         Output("current-status", "children"), Output("remaining-time", "children")],
+         Output("current-status", "children"), Output("remaining-time", "children"),
+         Output("json-traffic-light-display", "children")],
         [Input("next-second-button", "n_clicks"),
          Input("update_button_traffic_light", "n_clicks")]
     )
@@ -145,9 +158,15 @@ def register_callbacks(app):
             ew_phase = "yellow-red"
         elif phase == "all_red":
             ns_phase, ew_phase = "red", "red"
+
+        json_output = ""
         
         if update_n_clicks > 0:
             save_traffic_data(ns_phase, ew_phase, remaining_time)
+
+            # Lade die JSON-Daten für die Anzeige
+            with open(DATA_FILE, "r") as file:
+                json_output = json.dumps(json.load(file), indent=4)
         
         def get_colors(phase):
             if phase == "green":
@@ -164,4 +183,5 @@ def register_callbacks(app):
                 *get_colors(ew_phase),
                 *get_colors(ew_phase),
                 f"Aktuelle Phase: Nord/Süd - {ns_phase}, Ost/West - {ew_phase}",
-                f"Verbleibende Zeit: {remaining_time} Sekunden")
+                f"Verbleibende Zeit: {remaining_time} Sekunden",
+                json_output)

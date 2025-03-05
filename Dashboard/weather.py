@@ -43,32 +43,54 @@ def load_weather_data():
         return {"weatherCondition": "clear"}
 
 # Dashboard-Layout
-layout = html.Div([
-    html.H1("🌦 Wetterabhängige Straßenwarnungen"),
-    
-    html.Label("🌤 Wetterbedingung wählen:"),
-    dcc.Dropdown(
-        id="weather-condition",
-        options=[{"label": w, "value": w} for w in weather_conditions],
-        value=load_weather_data()["weatherCondition"]
-    ),
+layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyContent": "space-between"}, children=[
 
-    html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_weather", n_clicks=0),
-    html.Div(id="status-message"),
+    # **LINKER BEREICH: Wettersteuerung**
+    html.Div(style={"flex": "1", "padding": "20px", "backgroundColor": "#f9f9f9"}, children=[
+        html.H1("🌦 Wetterabhängige Straßenwarnungen"),
+        
+        html.Label("🌤 Wetterbedingung wählen:"),
+        dcc.Dropdown(
+            id="weather-condition",
+            options=[{"label": w, "value": w} for w in weather_conditions],
+            value=load_weather_data()["weatherCondition"]
+        ),
+
+        html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_weather", n_clicks=0),
+        html.Div(id="status-message")
+
+    ]),
+
+    # **RECHTER BEREICH: JSON**
+    html.Div(style={"flex": "1", "padding": "20px", "borderLeft": "2px solid #ccc", "backgroundColor": "#f9f9f9"}, children=[
+        html.H2("Aktualisierte JSON-Daten"),
+        html.Pre(id="json-weather-display", style={"border": "1px solid black", "padding": "10px", "whiteSpace": "pre-wrap",
+                                           "backgroundColor": "white", "height": "100px", "overflowY": "scroll"})
+    ])
+    
 ])
 
 def register_callbacks(app):
     # Callback für Wetteraktualisierung & DSRC-Sendung
     @app.callback(
-        Output("status-message", "children"),
+        [Output("status-message", "children"),
+         Output("json-weather-display", "children")],
         [Input("update_button_weather", "n_clicks")],
         [dash.State("weather-condition", "value")]
     )
     def update_weather(n_clicks, condition):
+        
+        json_output = ""
+
         if n_clicks > 0:
             save_weather_data(condition)
             dsrc_message = convert_weather_to_dsrc()
+
+            # Lade die JSON-Daten für die Anzeige
+            with open(DATA_FILE, "r") as file:
+                json_output = json.dumps(json.load(file), indent=4)
+
             if dsrc_message:
-                return "✅ Wetteraktualisierung gespeichert & DSRC gesendet!"
-            return "❌ Fehler bei der DSRC-Konvertierung!"
-        return ""
+                return "✅ Wetteraktualisierung gespeichert & DSRC gesendet!", json_output
+            return "❌ Fehler bei der DSRC-Konvertierung!", json_output
+        return "", json_output
