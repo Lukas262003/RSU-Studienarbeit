@@ -78,11 +78,11 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
         html.Button("Nächste Sekunde", id="next-second-button", n_clicks=0),
 
         html.H2("Aktueller Status"),
-        html.Div(id="current-status"),
+        html.Div(id="current-status-traffic-light"),
         html.H2("Verbleibende Zeit"),
-        html.Div(id="remaining-time"),
+        html.Div(id="remaining-time-traffic-light"),
 
-        html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_traffic_light", n_clicks=0),
+        html.Button("⚡ Aktualisieren & DSRC senden", id="update-button-traffic-light", n_clicks=0),
         html.Div(id="status-message"),
     ]),
 
@@ -132,10 +132,10 @@ def register_callbacks(app):
          Output("south-red", "color"), Output("south-yellow", "color"), Output("south-green", "color"),
          Output("east-red", "color"), Output("east-yellow", "color"), Output("east-green", "color"),
          Output("west-red", "color"), Output("west-yellow", "color"), Output("west-green", "color"),
-         Output("current-status", "children"), Output("remaining-time", "children"),
+         Output("current-status-traffic-light", "children"), Output("remaining-time-traffic-light", "children"),
          Output("json-traffic-light-display", "children")],
         [Input("next-second-button", "n_clicks"),
-         Input("update_button_traffic_light", "n_clicks")]
+         Input("update-button-traffic-light", "n_clicks")]
     )
     def update_traffic_light(next_second_n_clicks, update_n_clicks):
         """Aktualisiert die Ampelphasen für alle Richtungen basierend auf Button-Klicks."""

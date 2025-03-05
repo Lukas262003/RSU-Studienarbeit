@@ -1,0 +1,9 @@
+{
+    "restrictions": [
+        {
+            "type": "Spurverengung",
+            "lat": 47.653431,
+            "lon": 9.482343
+        }
+    ]
+}

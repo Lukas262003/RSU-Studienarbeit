@@ -57,7 +57,7 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
         ),
 
         html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_weather", n_clicks=0),
-        html.Div(id="status-message")
+        html.Div(id="status-message-weather")
 
     ]),
 
@@ -73,7 +73,7 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
 def register_callbacks(app):
     # Callback für Wetteraktualisierung & DSRC-Sendung
     @app.callback(
-        [Output("status-message", "children"),
+        [Output("status-message-weather", "children"),
          Output("json-weather-display", "children")],
         [Input("update_button_weather", "n_clicks")],
         [dash.State("weather-condition", "value")]
