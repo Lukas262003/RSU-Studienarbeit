@@ -65,7 +65,8 @@ def convert_to_dsrc(json_data):
                             "signalGroup": 1,  # Ampelgruppe 1 (z.B. Nord-Süd)
                             "state-time-speed": [
                                 {
-                                    "eventState": STATE_MAPPING.get(json_data["north_south"], "stop-And-Remain")
+                                    "eventState": STATE_MAPPING.get(json_data["north_south"], "stop-And-Remain"),
+                                    "timing": {"minEndTime": json_data.get("remaining_time", 0)}
                                 }
                             ]
                         },
@@ -73,7 +74,8 @@ def convert_to_dsrc(json_data):
                             "signalGroup": 2,  # Ampelgruppe 2 (z.B. Ost-West)
                             "state-time-speed": [
                                 {
-                                    "eventState": STATE_MAPPING.get(json_data["east_west"], "stop-And-Remain")
+                                    "eventState": STATE_MAPPING.get(json_data["east_west"], "stop-And-Remain"),
+                                    "timing": {"minEndTime": json_data.get("remaining_time", 0)}
                                 }
                             ]
                         }
