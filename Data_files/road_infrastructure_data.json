@@ -1,9 +1,11 @@
 {
     "restrictions": [
         {
-            "type": "Spurverengung",
-            "lat": 47.653431,
-            "lon": 9.482343
+            "type": "Fahrzeugspezifisches Tempolimit",
+            "lat": 47.652238,
+            "lon": 9.47002,
+            "speed": 20,
+            "vehicle": "LKW"
         }
     ]
 }

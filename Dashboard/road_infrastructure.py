@@ -4,7 +4,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output, State
 import json
 import os
-import re
+from dash.exceptions import PreventUpdate
 
 # Datei zur Speicherung der MAPEM-Daten
 MAPEM_FILE = "Data_files/road_infrastructure_data.json"
@@ -44,13 +44,49 @@ layout = html.Div([
     html.Button("Baustelle setzen", id="set-construction-button", n_clicks=0),
     html.Button("Spurverengung setzen", id="set-lane-reduction-button", n_clicks=0),
     html.Button("Straßensperrung setzen", id="set-road-closure-button", n_clicks=0),
-    html.Button("Tempolimit ändern", id="set-speed-limit-button", n_clicks=0),
-    html.Button("Fahrzeugspezifisches Tempolimit", id="set-vehicle-speed-button", n_clicks=0),
-    html.Button("Alle Änderungen entfernen", id="clear-restrictions-button", n_clicks=0),
+
+    html.Div([
+        html.Button("Tempolimit ändern", id="set-speed-limit-button", n_clicks=0, style={"margin-top": "10px"}),
+        html.Button("Fahrzeugspezifisches Tempolimit", id="set-vehicle-speed-button", n_clicks=0, style={"margin-top": "10px"}),
+        
+        # Eingabefeld für das Tempolimit (wird für beide Buttons verwendet)
+        html.Div([
+            dcc.Input(id="speed-limit-input", type="number", placeholder="Tempolimit in km/h", 
+                    min=5, max=130, step=5, style={"width": "80%"})
+        ]),
+
+        # Dropdown nur für fahrzeugspezifisches Tempolimit
+        html.Div([
+            dcc.Dropdown(
+                id="vehicle-type-dropdown",
+                options=[
+                    {"label": "PKW", "value": "PKW"},
+                    {"label": "LKW", "value": "LKW"},
+                    {"label": "Motorrad", "value": "Motorrad"},
+                    {"label": "Bus", "value": "Bus"}
+                ],
+                placeholder="Fahrzeugtyp wählen",
+                style={"width": "80%"}
+            )
+        ], id="vehicle-dropdown-container")
+    ]),
+
+    html.Button("Alle Änderungen entfernen", id="clear-restrictions-button", n_clicks=0, style={"margin-top": "10px", "font-size": "16px", "font-weight": "bold"}),
+
     
-    html.Div(id="status-message"),
+    html.Div(id="status-message", style={"margin-top": "10px", "font-size": "20px"}),
     html.H2("MAPEM-Daten"),
-    html.Pre(id="json-display", style={"border": "1px solid black", "padding": "10px", "whiteSpace": "pre-wrap"})
+    html.Pre(id="json-display", style={"border": "1px solid black", "padding": "10px", "whiteSpace": "pre-wrap"}),
+
+    dcc.Store(id="click-store", data={
+    "construction": 0,
+    "lane_reduction": 0,
+    "road_closure": 0,
+    "speed_limit": 0,
+    "vehicle_speed": 0,
+    "reset": 0
+    })
+
 ])
 
 def parse_coordinates(coord_str):
@@ -61,6 +97,7 @@ def parse_coordinates(coord_str):
         return None
 
 def register_callbacks(app):
+
     @app.callback(
         Output("user-marker", "position"),
         Output("marker-position-output", "children"),
@@ -77,46 +114,58 @@ def register_callbacks(app):
     
     @app.callback(
         [Output("map-layer", "children"),
-         Output("json-display", "children"),
-         Output("status-message", "children")],
+        Output("json-display", "children"),
+        Output("status-message", "children"),
+        Output("click-store", "data")],  # Speichert die Klicks zurück
         [Input("set-construction-button", "n_clicks"),
-         Input("set-lane-reduction-button", "n_clicks"),
-         Input("set-road-closure-button", "n_clicks"),
-         Input("set-speed-limit-button", "n_clicks"),
-         Input("set-vehicle-speed-button", "n_clicks"),
-         Input("clear-restrictions-button", "n_clicks")],
-        [State("user-marker", "position")]
+        Input("set-lane-reduction-button", "n_clicks"),
+        Input("set-road-closure-button", "n_clicks"),
+        Input("set-speed-limit-button", "n_clicks"),
+        Input("set-vehicle-speed-button", "n_clicks"),
+        Input("clear-restrictions-button", "n_clicks")],
+        [State("user-marker", "position"),
+        State("click-store", "data")]  # Liest gespeicherte Klicks
     )
-    def update_map(construction_n, lane_reduction_n, road_closure_n, speed_limit_n, vehicle_speed_n, clear_n, marker_position):
+    def update_map(construction_n, lane_reduction_n, road_closure_n, speed_limit_n, vehicle_speed_n, clear_n, marker_position, click_data):
+        ctx = dash.callback_context
+        trigger_id = ctx.triggered_id if ctx.triggered_id else None
+
         data = load_mapem_data()
         status_msg = ""
-        
-        if clear_n > 0:
+
+        if trigger_id == "clear-restrictions-button":
             data["restrictions"] = []
             status_msg = "Alle Einschränkungen entfernt!"
+            click_data = {k: 0 for k in click_data}  # Setzt alle Klicks zurück
         elif marker_position and isinstance(marker_position, list) and len(marker_position) == 2:
             lat, lon = marker_position
-            if construction_n > 0:
+            if trigger_id == "set-construction-button" and construction_n > click_data["construction"]:
                 data["restrictions"].append({"type": "Baustelle", "lat": lat, "lon": lon})
                 status_msg = "Baustelle gesetzt!"
-            elif lane_reduction_n > 0:
+                click_data["construction"] = construction_n
+            elif trigger_id == "set-lane-reduction-button" and lane_reduction_n > click_data["lane_reduction"]:
                 data["restrictions"].append({"type": "Spurverengung", "lat": lat, "lon": lon})
                 status_msg = "Spurverengung gesetzt!"
-            elif road_closure_n > 0:
+                click_data["lane_reduction"] = lane_reduction_n
+            elif trigger_id == "set-road-closure-button" and road_closure_n > click_data["road_closure"]:
                 data["restrictions"].append({"type": "Straßensperrung", "lat": lat, "lon": lon})
-                status_msg = "Straßensperrung gesetzt!"
-            elif speed_limit_n > 0:
+                status_msg = "Strassensperrung gesetzt!"
+                click_data["road_closure"] = road_closure_n
+            elif trigger_id == "set-speed-limit-button" and speed_limit_n > click_data["speed_limit"]:
                 data["restrictions"].append({"type": "Tempolimit", "lat": lat, "lon": lon, "speed": 30})
                 status_msg = "Tempolimit geändert auf 30 km/h!"
-            elif vehicle_speed_n > 0:
+                click_data["speed_limit"] = speed_limit_n
+            elif trigger_id == "set-vehicle-speed-button" and vehicle_speed_n > click_data["vehicle_speed"]:
                 data["restrictions"].append({"type": "Fahrzeugspezifisches Tempolimit", "lat": lat, "lon": lon, "speed": 20, "vehicle": "LKW"})
                 status_msg = "LKW-Tempolimit auf 20 km/h gesetzt!"
+                click_data["vehicle_speed"] = vehicle_speed_n
         else:
             status_msg = "❌ Fehler: Bitte gültige Koordinaten eingeben!"
-        
+            raise PreventUpdate
+
         with open(MAPEM_FILE, "w") as file:
             json.dump(data, file, indent=4)
-        
+
         markers = [dl.Marker(position=[r["lat"], r["lon"]], children=dl.Popup(f"{r['type']}")) for r in data["restrictions"]]
-        
-        return markers, json.dumps(data, indent=4), status_msg
+
+        return markers, json.dumps(data, indent=4), status_msg, click_data
