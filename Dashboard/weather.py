@@ -7,8 +7,10 @@ import os
 
 # Dynamischen Pfad zum Import des Moduls hinzufügen
 sys.path.append(os.path.abspath("Conversion"))
+sys.path.append(os.path.abspath("OBU_related"))
 
 from convert_weather_to_DSRC import convert_weather_to_dsrc, load_weather_data, save_dsrc_message
+from send_to_obu import send_file_to_obu # Importiere die Funktion zum Senden an OBU
 
 # Datei zur Speicherung der Wetterdaten
 DATA_FILE = "Data_files/weather_data.json"
@@ -33,6 +35,8 @@ def save_weather_data(condition):
     if dsrc_message:
         save_dsrc_message(dsrc_message, "dsrc_weather_message.bin")  # Speichern als Binärdatei
         print("✅ DSRC-Nachricht erfolgreich generiert & gespeichert!")
+
+    send_file_to_obu("Data_files/dsrc_weather_message.bin", "dsrc_weather_message.bin")
 
 def load_weather_data():
     """Lädt die gespeicherten Wetterdaten."""

@@ -88,6 +88,7 @@ def convert_to_dsrc(json_data):
 
     try:
         encoded_message = dsrc_codec.encode("SPATEM", dsrc_message)  # Nachricht in DSRC-Format kodieren
+        print(encoded_message)
         return encoded_message
     except Exception as e:
         print("Fehler beim Kodierungsversuch! Prüfe die ASN.1-Datenstruktur.")

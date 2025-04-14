@@ -9,9 +9,11 @@ import os
 
 # Dynamische Pfade zum Import von Modulen
 sys.path.append(os.path.abspath("Conversion"))
+sys.path.append(os.path.abspath("OBU_related"))
 
 # Jetzt kann es importiert werden
 from convert_traffic_light_to_DSRC import convert_to_dsrc, load_traffic_data, save_dsrc_message
+from send_to_obu import send_file_to_obu # Importiere die Funktion zum Senden an OBU
 
 # Datei zur Speicherung der Ampelphasen
 DATA_FILE = "Data_files/traffic_data.json"
@@ -124,6 +126,8 @@ def save_traffic_data(ns_phase, ew_phase, remaining_time):
     if encoded_message:
         save_dsrc_message(encoded_message, "dsrc_traffic_light_message.bin")  # Speichern als Binärdatei
         print("✅ DSRC-Nachricht erfolgreich generiert & gespeichert!")
+
+    send_file_to_obu("Data_files/dsrc_traffic_light_message.bin", "dsrc_traffic_light_message.bin")
 
 # **Callback-Funktion wird über eine separate Funktion registriert**
 def register_callbacks(app):
