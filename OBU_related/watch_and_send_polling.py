@@ -36,7 +36,7 @@ while True:
         if full_path not in last_hashes or last_hashes[full_path] != new_hash:
             print("Aenderung erkannt an {}, sende...".format(filename))
             subprocess.Popen([
-                "python3", "send_own_payload.py",
+                "python3", "/home/user/send_own_payload.py",
                 MK5_IP, PORT, PKT_RATE, NUM_PKTS, full_path
             ])
             last_hashes[full_path] = new_hash

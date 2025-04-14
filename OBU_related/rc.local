@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case "$1" in
+  start)
+    echo "Starting custom processes..."
+    /mnt/ubi/startup.sh
+    ;;
+  stop)
+    echo "Stopping not implemented."
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
+esac
