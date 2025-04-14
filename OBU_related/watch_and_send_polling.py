@@ -41,4 +41,4 @@ while True:
             ])
             last_hashes[full_path] = new_hash
 
-    time.sleep(5)  # alle 5 Sekunden prüfen
+    time.sleep(2)  # alle 5 Sekunden prüfen

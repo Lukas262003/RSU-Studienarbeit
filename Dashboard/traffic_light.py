@@ -1,7 +1,7 @@
 import json
 import datetime
 from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_daq as daq
 
 import sys
@@ -131,19 +131,17 @@ def save_traffic_data(ns_phase, ew_phase, remaining_time):
 
 # **Callback-Funktion wird über eine separate Funktion registriert**
 def register_callbacks(app):
+    # Callback A: Nächste Sekunde
     @app.callback(
         [Output("north-red", "color"), Output("north-yellow", "color"), Output("north-green", "color"),
          Output("south-red", "color"), Output("south-yellow", "color"), Output("south-green", "color"),
          Output("east-red", "color"), Output("east-yellow", "color"), Output("east-green", "color"),
          Output("west-red", "color"), Output("west-yellow", "color"), Output("west-green", "color"),
-         Output("current-status-traffic-light", "children"), Output("remaining-time-traffic-light", "children"),
-         Output("json-traffic-light-display", "children")],
-        [Input("next-second-button", "n_clicks"),
-         Input("update-button-traffic-light", "n_clicks")]
+         Output("current-status-traffic-light", "children"), Output("remaining-time-traffic-light", "children")],
+        Input("next-second-button", "n_clicks")
     )
-    def update_traffic_light(next_second_n_clicks, update_n_clicks):
-        """Aktualisiert die Ampelphasen für alle Richtungen basierend auf Button-Klicks."""
-        phase, remaining_time = get_current_phase(next_second_n_clicks)
+    def update_traffic_light_phase(n_clicks):
+        phase, remaining_time = get_current_phase(n_clicks)
         
         ns_phase = "red"
         ew_phase = "red"
@@ -163,15 +161,6 @@ def register_callbacks(app):
         elif phase == "all_red":
             ns_phase, ew_phase = "red", "red"
 
-        json_output = ""
-        
-        if update_n_clicks > 0:
-            save_traffic_data(ns_phase, ew_phase, remaining_time)
-
-            # Lade die JSON-Daten für die Anzeige
-            with open(DATA_FILE, "r") as file:
-                json_output = json.dumps(json.load(file), indent=4)
-        
         def get_colors(phase):
             if phase == "green":
                 return "gray", "gray", "green"
@@ -181,11 +170,47 @@ def register_callbacks(app):
                 return "red", "yellow", "gray"
             else:
                 return "red", "gray", "gray"
-        
+
         return (*get_colors(ns_phase),
                 *get_colors(ns_phase),
                 *get_colors(ew_phase),
                 *get_colors(ew_phase),
                 f"Aktuelle Phase: Nord/Süd - {ns_phase}, Ost/West - {ew_phase}",
-                f"Verbleibende Zeit: {remaining_time} Sekunden",
-                json_output)
+                f"Verbleibende Zeit: {remaining_time} Sekunden")
+
+    # Callback B: DSRC senden & JSON aktualisieren
+    @app.callback(
+        Output("json-traffic-light-display", "children"),
+        Input("update-button-traffic-light", "n_clicks"),
+        State("next-second-button", "n_clicks")
+    )
+    def send_traffic_data(n_clicks_send, n_clicks_phase):
+        if not n_clicks_send:
+            return "", ""
+
+        phase, remaining_time = get_current_phase(n_clicks_phase)
+
+        ns_phase = "red"
+        ew_phase = "red"
+        
+        if phase == "ns_green":
+            ns_phase = "green"
+        elif phase == "ns_red_yellow":
+            ns_phase = "yellow-red"
+        elif phase == "ns_yellow":
+            ns_phase = "yellow"
+        elif phase == "ew_green":
+            ew_phase = "green"
+        elif phase == "ew_yellow":
+            ew_phase = "yellow"
+        elif phase == "ew_red_yellow":
+            ew_phase = "yellow-red"
+        elif phase == "all_red":
+            ns_phase, ew_phase = "red", "red"
+
+        save_traffic_data(ns_phase, ew_phase, remaining_time)
+
+        with open(DATA_FILE, "r") as file:
+            json_output = json.dumps(json.load(file), indent=4)
+
+        return json_output, "✅ DSRC-Nachricht gesendet!"
