@@ -23,7 +23,6 @@ TRAFFIC_CYCLE = [
     ("ew_yellow", 3),
     ("all_red", 2)
 ]
-
 layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyContent": "space-between"}, children=[
 
     html.Div(style={"flex": "1", "padding": "20px"}, children=[
@@ -38,6 +37,7 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
             disabled=True
         ),
 
+        # Obere Ampel
         html.Div([
             html.Div([
                 html.Div(id="north-red-auto", className="traffic-light-dot dot-off"),
@@ -46,22 +46,36 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
             ], className="traffic-light")
         ], style={"display": "flex", "justifyContent": "center", "marginBottom": "10px"}),
 
-        html.Div([
+        # Mittelteil – angepasst!
+        html.Div(style={
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "gap": "40px",
+            "marginLeft": "-40px",
+            "marginRight": "-40px"
+        }, children=[
             html.Div([
                 html.Div(id="west-red-auto", className="traffic-light-dot dot-off"),
                 html.Div(id="west-yellow-auto", className="traffic-light-dot dot-off"),
                 html.Div(id="west-green-auto", className="traffic-light-dot dot-off")
-            ], className="traffic-light"),
+            ], className="traffic-light", style={"marginRight": "-20px"}),
 
-            html.Div(style={"width": "150px", "height": "150px", "backgroundColor": "#ccc", "border": "3px solid black"}),
+            html.Div(style={
+                "width": "150px",
+                "height": "150px",
+                "backgroundColor": "#ccc",
+                "border": "3px solid black"
+            }),
 
             html.Div([
                 html.Div(id="east-red-auto", className="traffic-light-dot dot-off"),
                 html.Div(id="east-yellow-auto", className="traffic-light-dot dot-off"),
                 html.Div(id="east-green-auto", className="traffic-light-dot dot-off")
-            ], className="traffic-light")
-        ], style={"display": "flex", "justifyContent": "center", "alignItems": "center", "gap": "20px"}),
+            ], className="traffic-light", style={"marginLeft": "-20px"})
+        ]),
 
+        # Untere Ampel
         html.Div([
             html.Div([
                 html.Div(id="south-red-auto", className="traffic-light-dot dot-off"),
