@@ -8,20 +8,27 @@ import automated_scenarios as automated_scenarios
 # Erstelle die Dash-App
 app = dash.Dash(__name__, suppress_callback_exceptions=True)
 
-# Tabs für verschiedene Funktionen
 app.layout = html.Div([
-    dcc.Tabs(id="tabs", value="traffic", children=[
-        dcc.Tab(label="Ampelsteuerung", value="traffic"),
-        dcc.Tab(label="Wetter", value="weather"),
-        dcc.Tab(label="Straßen Infrastruktur", value="road_infrastructure"),
-        dcc.Tab(label="Automatisierte Szenarien", value="automated_scenarios"),
-        dcc.Tab(label="V2X-Kommunikation", value="v2x_communication"),
-        dcc.Tab(label="Smart City-Integration", value="smart_city"),
-        dcc.Tab(label="Gefahrenmanagement", value="hazard_management")
-    ]),
-    html.Div(id="tabs-content")
+    dcc.Tabs(
+        id="tabs",
+        value="traffic",
+        colors={
+            "border": "#ffffff",
+            "primary": "#0d6efd",
+            "background": "#f1f1f1"
+        },
+        children=[
+            dcc.Tab(label="🚦 Ampelsteuerung", value="traffic"),
+            dcc.Tab(label="🌤️ Wetter", value="weather"),
+            dcc.Tab(label="🛣️ Straßen Infrastruktur", value="road_infrastructure"),
+            dcc.Tab(label="🤖 Automatisierte Szenarien", value="automated_scenarios"),
+            dcc.Tab(label="📡 V2X-Kommunikation", value="v2x_communication"),
+            dcc.Tab(label="🏙️ Smart City-Integration", value="smart_city"),
+            dcc.Tab(label="⚠️ Gefahrenmanagement", value="hazard_management")
+        ]
+    ),
+    html.Div(id="tabs-content", className="tab-content")
 ])
-
 @app.callback(
     dash.dependencies.Output("tabs-content", "children"),
     [dash.dependencies.Input("tabs", "value")]
