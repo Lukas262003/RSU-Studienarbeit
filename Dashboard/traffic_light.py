@@ -24,56 +24,67 @@ TRAFFIC_CYCLE = [
     ("ew_yellow", 3),
     ("all_red", 2)
 ]
-
 layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyContent": "space-between"}, children=[
 
     html.Div(style={"flex": "1", "padding": "20px", "backgroundColor": "#f9f9f9"}, children=[
         html.H1("RSU Kreuzungssteuerung"),
         dcc.Interval(id="interval-component", interval=1000, n_intervals=0),
 
+        # Obere Ampel
         html.Div(className="traffic-light", children=[
             html.Div(id="north-red", className="traffic-light-dot dot-off"),
             html.Div(id="north-yellow", className="traffic-light-dot dot-off"),
             html.Div(id="north-green", className="traffic-light-dot dot-off")
         ], style={"margin": "0 auto 20px auto"}),
 
+        # Mittelteil: Ost-/West-Ampeln + Kreuzung
         html.Div(style={
             "display": "flex",
             "justifyContent": "center",
             "alignItems": "center",
-            "gap": "20px"
+            "gap": "40px",
+            "marginLeft": "-40px",
+            "marginRight": "-40px"
         }, children=[
-            html.Div(className="traffic-light", children=[
+            html.Div(className="traffic-light", style={"marginRight": "-20px"}, children=[
                 html.Div(id="west-red", className="traffic-light-dot dot-off"),
                 html.Div(id="west-yellow", className="traffic-light-dot dot-off"),
                 html.Div(id="west-green", className="traffic-light-dot dot-off")
             ]),
-            html.Div(style={"width": "150px", "height": "150px", "backgroundColor": "#ccc", "border": "3px solid black"}),
-            html.Div(className="traffic-light", children=[
+            html.Div(style={
+                "width": "150px",
+                "height": "150px",
+                "backgroundColor": "#ccc",
+                "border": "3px solid black"
+            }),
+            html.Div(className="traffic-light", style={"marginLeft": "-20px"}, children=[
                 html.Div(id="east-red", className="traffic-light-dot dot-off"),
                 html.Div(id="east-yellow", className="traffic-light-dot dot-off"),
                 html.Div(id="east-green", className="traffic-light-dot dot-off")
             ])
         ]),
 
+        # Untere Ampel
         html.Div(className="traffic-light", children=[
             html.Div(id="south-red", className="traffic-light-dot dot-off"),
             html.Div(id="south-yellow", className="traffic-light-dot dot-off"),
             html.Div(id="south-green", className="traffic-light-dot dot-off")
         ], style={"margin": "20px auto 0 auto"}),
 
-        html.H1("RSU Kreuzungssteuerung - Manuelle Steuerung"),
-        html.Button("N\u00e4chste Sekunde", id="next-second-button", n_clicks=0),
+        html.H2(""),
+        html.Button("Nächste Sekunde", id="next-second-button", n_clicks=0),
 
         html.H2("Aktueller Status"),
         html.Div(id="current-status-traffic-light"),
+
         html.H2("Verbleibende Zeit"),
         html.Div(id="remaining-time-traffic-light"),
 
-        html.Button("\u26a1 Aktualisieren & DSRC senden", id="update-button-traffic-light", n_clicks=0),
+        html.Button("⚡ Aktualisieren & DSRC senden", id="update-button-traffic-light", n_clicks=0),
         html.Div(id="status-message-traffic-light"),
     ]),
 
+    # Rechte Spalte: JSON & Ablaufprotokoll
     html.Div(style={"flex": "1", "padding": "20px", "borderLeft": "2px solid #ccc", "backgroundColor": "#f9f9f9"}, children=[
         html.H2("Aktualisierte JSON-Daten"),
         html.Pre(id="json-traffic-light-display", className="json-box"),
@@ -85,6 +96,7 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
         html.Pre(id="process-log-display-traffic-light", className="log-box"),
     ])
 ])
+
 
 def get_current_phase(n_clicks):
     elapsed_time = n_clicks % sum(t[1] for t in TRAFFIC_CYCLE)
