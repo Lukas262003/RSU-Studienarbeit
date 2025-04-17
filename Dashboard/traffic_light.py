@@ -18,6 +18,8 @@ from send_to_obu import send_file_to_obu # Importiere die Funktion zum Senden an
 # Datei zur Speicherung der Ampelphasen
 DATA_FILE = "Data_files/traffic_data.json"
 
+LOG_FILE = "Data_files/process_traffic_light.log"
+
 # Definiere die synchronisierten Ampelphasen mit Zeiten
 TRAFFIC_CYCLE = [
     ("ns_red_yellow", 2),   # Nord-Süd Rot-Gelb, Ost-West bleibt Rot
@@ -85,14 +87,27 @@ layout = html.Div(style={"display": "flex", "flexDirection": "row", "justifyCont
         html.Div(id="remaining-time-traffic-light"),
 
         html.Button("⚡ Aktualisieren & DSRC senden", id="update-button-traffic-light", n_clicks=0),
-        html.Div(id="status-message"),
+        html.Div(id="status-message-traffic-light"),
     ]),
 
     # **RECHTER BEREICH: JSON**
     html.Div(style={"flex": "1", "padding": "20px", "borderLeft": "2px solid #ccc", "backgroundColor": "#f9f9f9"}, children=[
         html.H2("Aktualisierte JSON-Daten"),
         html.Pre(id="json-traffic-light-display", style={"border": "1px solid black", "padding": "10px", "whiteSpace": "pre-wrap",
-                                           "backgroundColor": "white", "height": "100px", "overflowY": "scroll"})
+                                           "backgroundColor": "white", "height": "100px", "overflowY": "scroll"}),
+
+        dcc.Interval(id="json-update-interval-traffic-light", interval=500, n_intervals=0),
+        dcc.Interval(id="log-update-interval-traffic-light", interval=200, n_intervals=0),
+
+        html.H2("Live Ablaufprotokoll"),
+        html.Pre(id="process-log-display-traffic-light", style={
+            "border": "1px solid black",
+            "padding": "10px",
+            "whiteSpace": "pre-wrap",
+            "backgroundColor": "white",
+            "height": "150px",
+            "overflowY": "scroll"
+        }),
     ])
 ])
 
@@ -117,17 +132,33 @@ def save_traffic_data(ns_phase, ew_phase, remaining_time):
     with open(DATA_FILE, "w") as file:
         json.dump(data, file, indent=4)
 
+    write_log("JSON-Datei gespeichert.")
+
     print("✅ JSON aktualisiert:", data)
 
     # Automatische DSRC-Umwandlung
     json_data = load_traffic_data()  # Lade das gespeicherte JSON
     encoded_message = convert_to_dsrc(json_data)  # Wandle es in DSRC um
 
+    write_log("In DSRC-Nachrichtenformat umgewandelt.")
+
     if encoded_message:
         save_dsrc_message(encoded_message, "dsrc_traffic_light_message.bin")  # Speichern als Binärdatei
         print("✅ DSRC-Nachricht erfolgreich generiert & gespeichert!")
+        write_log("In Binärdatei gespeichert.")
 
     send_file_to_obu("Data_files/dsrc_traffic_light_message.bin", "dsrc_traffic_light_message.bin")
+
+    write_log("Binärdatei per SSH an OBU gesendet.")
+    write_log("Nachricht über OBU-Antenne gesendet (angenommen).")
+
+def write_log(message):
+    with open(LOG_FILE, "a") as f:
+        f.write(f"{message}\n")
+
+def clear_log():
+    with open(LOG_FILE, "w") as f:
+        f.write("")
 
 # **Callback-Funktion wird über eine separate Funktion registriert**
 def register_callbacks(app):
@@ -141,7 +172,10 @@ def register_callbacks(app):
         Input("next-second-button", "n_clicks")
     )
     def update_traffic_light_phase(n_clicks):
+
         phase, remaining_time = get_current_phase(n_clicks)
+
+        clear_log()
         
         ns_phase = "red"
         ew_phase = "red"
@@ -180,13 +214,16 @@ def register_callbacks(app):
 
     # Callback B: DSRC senden & JSON aktualisieren
     @app.callback(
-        Output("json-traffic-light-display", "children"),
+        Output("status-message-traffic-light", "children"),
         Input("update-button-traffic-light", "n_clicks"),
         State("next-second-button", "n_clicks")
     )
     def send_traffic_data(n_clicks_send, n_clicks_phase):
         if not n_clicks_send:
             return "", ""
+    
+        clear_log()
+        write_log("JSON-Datei wird erstellt...")
 
         phase, remaining_time = get_current_phase(n_clicks_phase)
 
@@ -213,4 +250,27 @@ def register_callbacks(app):
         with open(DATA_FILE, "r") as file:
             json_output = json.dumps(json.load(file), indent=4)
 
-        return json_output, "✅ DSRC-Nachricht gesendet!"
+        return "✅ Ampelaktualisierung gespeichert & DSRC gesendet!"
+    
+    @app.callback(
+        Output("process-log-display-traffic-light", "children"),
+        Input("log-update-interval-traffic-light", "n_intervals")
+    )
+    def update_log_display(n):
+        try:
+            with open(LOG_FILE, "r") as f:
+                return f.read()
+        except FileNotFoundError:
+            return "Noch keine Logs vorhanden."
+        
+    @app.callback(
+    Output("json-traffic-light-display", "children"),
+    Input("json-update-interval-traffic-light", "n_intervals"))
+    def update_json_display(n):
+        try:
+            with open(DATA_FILE, "r") as f:
+                return json.dumps(json.load(f), indent=4)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return "Noch keine gültigen JSON-Daten vorhanden."
+
+

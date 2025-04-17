@@ -27,6 +27,11 @@
             "lon": 9.472627,
             "speed": 20,
             "vehicle": "LKW"
+        },
+        {
+            "type": "Spurverengung",
+            "lat": 47.65735,
+            "lon": 9.474172
         }
     ]
 }
