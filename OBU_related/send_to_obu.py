@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.abspath("Data_files"))
 
 def send_file_to_obu(local_file_path, remote_file_name):
-    OBU_IP = "192.168.1.10"
+    OBU_IP = OBU_IP = "[fe80::6e5:48ff:fe01:93e0]"
     OBU_USER = "user"
     REMOTE_DIR = "/home/user/obu_bin"
 
