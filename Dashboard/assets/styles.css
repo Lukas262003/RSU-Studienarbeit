@@ -1,0 +1,167 @@
+:root {
+    --primary-color: #0d6efd;
+    --primary-hover: #084298;
+    --secondary-color: #6c757d;
+    --background: #dcdcdd;
+    --card-bg: #ffffff;
+    --text-color: #212529;
+    --heading-color: #111;
+    --border-radius: 12px;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --box-border: #ced4da;
+    --accent-bg: #f8f9fa;
+    --ampel-housing: #222;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/assets/fonts/Poppins-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background);
+    color: var(--text-color);
+}
+
+
+
+.dash-tabs-container {
+    margin-bottom: 0;
+}
+
+.tab-content {
+    padding: 10px 20px 20px 20px;
+    box-sizing: border-box;
+}
+
+.two-column {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.left-column, .right-column {
+    flex: 1;
+    min-width: 320px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--box-border);
+}
+
+h1, h2, h3 {
+    color: var(--heading-color);
+    font-weight: 600;
+    margin-top: 0;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+button, .dash-bootstrap button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 6px 18px rgba(13, 110, 253, 0.4);
+}
+
+button:focus {
+    outline: 3px solid rgba(13, 110, 253, 0.5);
+}
+
+.status-box, .log-box {
+    background-color: var(--accent-bg);
+    border-left: 6px solid var(--primary-color);
+    padding: 18px;
+    margin-bottom: 24px;
+    border-radius: 10px;
+    border: 1px solid var(--box-border);
+}
+
+.json-box, .log-box {
+    background-color: var(--accent-bg);
+    font-family: monospace;
+    white-space: pre-wrap;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--box-border);
+    overflow: auto;
+    max-height: 250px;
+}
+
+@keyframes pulseUpdate {
+    0% { background-color: #d0e4ff; }
+    100% { background-color: white; }
+}
+
+.json-box.updated {
+    animation: pulseUpdate 0.8s ease-in-out;
+}
+
+.traffic-light {
+    width: 26px;
+    background-color: var(--ampel-housing);
+    border-radius: 12px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    margin: 0 auto;
+}
+
+.traffic-light-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #343a40;
+}
+
+.dot-red { background-color: #dc3545; }
+.dot-yellow { background-color: #ffc107; }
+.dot-green { background-color: #28a745; }
+.dot-off { background-color: #adb5bd; }
+
+.timer-bar {
+    height: 10px;
+    background-color: #d6d8db;
+    border-radius: 6px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.timer-bar-inner {
+    height: 100%;
+    background-color: var(--primary-color);
+    width: 100%;
+    transition: width 1s linear;
+}
+
+@media (max-width: 600px) {
+    .two-column {
+        flex-direction: column;
+    }
+    button {
+        width: 100%;
+    }
+}
