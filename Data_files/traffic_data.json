@@ -1,5 +1,5 @@
 {
-    "north_south": "red",
-    "east_west": "yellow-red",
-    "remaining_time": 2
+    "north_south": "green",
+    "east_west": "red",
+    "remaining_time": 9
 }
