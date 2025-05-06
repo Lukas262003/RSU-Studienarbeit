@@ -1,0 +1,49 @@
+IVIM-MIN DEFINITIONS AUTOMATIC TAGS ::= BEGIN
+
+IVIM ::= SEQUENCE {
+  ivimHeader         IvimHeader,
+  iviContainerList   SEQUENCE OF Ivi
+}
+
+IvimHeader ::= SEQUENCE {
+  protocolVersion     INTEGER (0..255),
+  messageID           INTEGER (0..255),
+  generationDeltaTime INTEGER (0..65535),
+  stationID           INTEGER (0..4294967295)
+}
+
+Ivi ::= SEQUENCE {
+  stationID           INTEGER (0..4294967295),
+  messageID           INTEGER (0..255),
+  iviIdentification   IviIdentification,
+  validityDuration    INTEGER (0..86400),
+  iviStatus           INTEGER (0..255),
+  iviPurpose          INTEGER (0..255),
+  applicablePosition  Position,
+  signList            SEQUENCE OF TrafficSignContainer
+}
+
+IviIdentification ::= SEQUENCE {
+  countryCode         INTEGER (0..999),
+  providerIdentifier  INTEGER (0..65535),
+  messageID           INTEGER (0..255)
+}
+
+Position ::= SEQUENCE {
+  point SEQUENCE {
+    latitude  INTEGER (-900000000..900000000),
+    longitude INTEGER (-1800000000..1800000000)
+  }
+}
+
+TrafficSignContainer ::= SEQUENCE {
+  iviType            INTEGER (0..255),
+  trafficSigns       SEQUENCE OF TrafficSign
+}
+
+TrafficSign ::= SEQUENCE {
+  trafficSignPictogram INTEGER (0..2047),
+  trafficSignValue     INTEGER (0..255)
+}
+
+END

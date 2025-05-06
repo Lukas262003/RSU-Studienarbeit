@@ -102,15 +102,36 @@ def get_current_phase(n_clicks):
         elapsed_time -= duration
     return "all_red", 0
 
+# Globale Variable oben im Skript ergänzen
+last_sent_phase = None
+
 def save_traffic_data(ns_phase, ew_phase, remaining_time):
-    data = {"north_south": ns_phase, "east_west": ew_phase, "remaining_time": remaining_time}
+    global last_sent_phase
+    current_phase = (ns_phase, ew_phase)
+
+    if current_phase == last_sent_phase:
+        print("[SKIP] Phase unverändert – keine neue Nachricht gesendet.")
+        return  # keine Aktion
+
+    last_sent_phase = current_phase
+    print("[SEND] Neue Phase erkannt – sende Nachricht:", current_phase)
+
+    data = {
+        "north_south": ns_phase,
+        "east_west": ew_phase,
+        "remaining_time": remaining_time
+    }
+
     with open(DATA_FILE, "w") as file:
         json.dump(data, file, indent=4)
+
     json_data = load_traffic_data()
     encoded_message = convert_to_dsrc(json_data)
     if encoded_message:
         save_dsrc_message(encoded_message, "dsrc_traffic_light_message.bin")
+
     send_file_to_obu("Data_files/dsrc_traffic_light_message.bin", "dsrc_traffic_light_message.bin")
+
 
 def get_dot_classes(phase):
     if phase == "green":
@@ -130,38 +151,58 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def toggle_auto_mode(n_clicks, current_disabled):
-        return not current_disabled
+        new_state = not current_disabled
+        print(f"[BUTTON] n_clicks: {n_clicks}, bisher disabled: {current_disabled} → neu: {new_state}")
+        return new_state
 
     @app.callback(
-        [Output("auto-traffic-phase", "children"),
-         Output("auto-json-display", "children"),
-         Output("north-red-auto", "className"), Output("north-yellow-auto", "className"), Output("north-green-auto", "className"),
-         Output("south-red-auto", "className"), Output("south-yellow-auto", "className"), Output("south-green-auto", "className"),
-         Output("east-red-auto", "className"), Output("east-yellow-auto", "className"), Output("east-green-auto", "className"),
-         Output("west-red-auto", "className"), Output("west-yellow-auto", "className"), Output("west-green-auto", "className")],
+        [
+            Output("auto-traffic-phase", "children"),
+            Output("auto-json-display", "children"),
+            Output("north-red-auto", "className"), Output("north-yellow-auto", "className"), Output("north-green-auto", "className"),
+            Output("south-red-auto", "className"), Output("south-yellow-auto", "className"), Output("south-green-auto", "className"),
+            Output("west-red-auto", "className"), Output("west-yellow-auto", "className"), Output("west-green-auto", "className"),
+            Output("east-red-auto", "className"), Output("east-yellow-auto", "className"), Output("east-green-auto", "className")
+        ],
         Input("auto-interval", "n_intervals"),
         prevent_initial_call=True
     )
     def update_automated_scenario(n_intervals):
+        print(f"[INTERVAL] n_intervals: {n_intervals}")
+
         phase, remaining_time = get_current_phase(n_intervals)
+        print(f"[PHASE] aktuelle Phase: {phase}, verbleibende Zeit: {remaining_time}")
+
         ns_phase = ew_phase = "red"
-        if phase == "ns_green": ns_phase = "green"
-        elif phase == "ns_red_yellow": ns_phase = "yellow-red"
-        elif phase == "ns_yellow": ns_phase = "yellow"
-        elif phase == "ew_green": ew_phase = "green"
-        elif phase == "ew_yellow": ew_phase = "yellow"
-        elif phase == "ew_red_yellow": ew_phase = "yellow-red"
+        if phase == "ns_green":
+            ns_phase = "green"
+        elif phase == "ns_red_yellow":
+            ns_phase = "yellow-red"
+        elif phase == "ns_yellow":
+            ns_phase = "yellow"
+        elif phase == "ew_green":
+            ew_phase = "green"
+        elif phase == "ew_yellow":
+            ew_phase = "yellow"
+        elif phase == "ew_red_yellow":
+            ew_phase = "yellow-red"
+
+        print(f"[ZUSTAND] NS: {ns_phase}, EW: {ew_phase}")
 
         save_traffic_data(ns_phase, ew_phase, remaining_time)
+        print("[SAVE] Daten gespeichert und gesendet.")
 
         with open(DATA_FILE, "r") as file:
             json_output = json.dumps(json.load(file), indent=4)
 
+        print(f"[DOT-CLASSES] north/south: {get_dot_classes(ns_phase)}")
+        print(f"[DOT-CLASSES] west/east:  {get_dot_classes(ew_phase)}")
+
         return (
             f"Phase: Nord/Süd - {ns_phase}, Ost/West - {ew_phase}, {remaining_time} Sek.",
             json_output,
-            *get_dot_classes(ns_phase),
-            *get_dot_classes(ns_phase),
-            *get_dot_classes(ew_phase),
-            *get_dot_classes(ew_phase)
+            *get_dot_classes(ns_phase),   # north
+            *get_dot_classes(ns_phase),   # south
+            *get_dot_classes(ew_phase),   # west
+            *get_dot_classes(ew_phase)    # east
         )

@@ -56,7 +56,7 @@ def update_tab_content(tab):
 traffic_light.register_callbacks(app)
 weather.register_callbacks(app)
 road_infrastructure.register_callbacks(app)
-# automated_scenarios.register_callbacks(app)
+automated_scenarios.register_callbacks(app)
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8050)

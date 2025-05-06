@@ -86,7 +86,9 @@ layout = html.Div([
         "speed_limit": 0,
         "vehicle_speed": 0,
         "reset": 0
-    })
+    }),
+
+    html.Button("⚡ Aktualisieren & DSRC senden", id="update_button_weather", n_clicks=0),
 ])
 
 def parse_coordinates(coord_str):
@@ -121,11 +123,12 @@ def register_callbacks(app):
          Input("set-road-closure-button", "n_clicks"),
          Input("set-speed-limit-button", "n_clicks"),
          Input("set-vehicle-speed-button", "n_clicks"),
-         Input("clear-restrictions-button", "n_clicks")],
+         Input("clear-restrictions-button", "n_clicks"),
+         Input("speed-limit-input", "value"),],
         [State("user-marker", "position"),
          State("click-store", "data")]
     )
-    def update_map(construction_n, lane_reduction_n, road_closure_n, speed_limit_n, vehicle_speed_n, clear_n, marker_position, click_data):
+    def update_map(construction_n, lane_reduction_n, road_closure_n, speed_limit_n, vehicle_speed_n, clear_n, speed_limit_input, marker_position, click_data):
         ctx = dash.callback_context
         trigger_id = ctx.triggered_id if ctx.triggered_id else None
 
@@ -147,16 +150,16 @@ def register_callbacks(app):
                 status_msg = "Spurverengung gesetzt!"
                 click_data["lane_reduction"] = lane_reduction_n
             elif trigger_id == "set-road-closure-button" and road_closure_n > click_data["road_closure"]:
-                data["restrictions"].append({"type": "Straßensperrung", "lat": lat, "lon": lon})
+                data["restrictions"].append({"type": "Strassensperrung", "lat": lat, "lon": lon})
                 status_msg = "Straßensperrung gesetzt!"
                 click_data["road_closure"] = road_closure_n
             elif trigger_id == "set-speed-limit-button" and speed_limit_n > click_data["speed_limit"]:
-                data["restrictions"].append({"type": "Tempolimit", "lat": lat, "lon": lon, "speed": 30})
-                status_msg = "Tempolimit geändert auf 30 km/h!"
+                data["restrictions"].append({"type": "Tempolimit", "lat": lat, "lon": lon, "speed": speed_limit_input})
+                status_msg = f"Tempolimit geändert auf {speed_limit_input} km/h!"
                 click_data["speed_limit"] = speed_limit_n
             elif trigger_id == "set-vehicle-speed-button" and vehicle_speed_n > click_data["vehicle_speed"]:
-                data["restrictions"].append({"type": "Fahrzeugspezifisches Tempolimit", "lat": lat, "lon": lon, "speed": 20, "vehicle": "LKW"})
-                status_msg = "LKW-Tempolimit auf 20 km/h gesetzt!"
+                data["restrictions"].append({"type": "Fahrzeugspezifisches Tempolimit", "lat": lat, "lon": lon, "speed": speed_limit_input, "vehicle": "LKW"})
+                status_msg = f"LKW-Tempolimit auf {speed_limit_input} km/h gesetzt!"
                 click_data["vehicle_speed"] = vehicle_speed_n
         else:
             raise PreventUpdate
