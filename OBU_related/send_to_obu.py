@@ -15,6 +15,7 @@ def send_file_to_obu(local_file_path, remote_file_name):
         return False
 
     result = subprocess.run([
+        "sshpass", "-p", "user",
         "scp", local_file_path, f"{OBU_USER}@{OBU_IP}:{REMOTE_DIR}/{remote_file_name}"
     ])
 
